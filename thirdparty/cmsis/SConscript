@@ -1,0 +1,7 @@
+Import('env')
+
+env = env.Clone()
+
+obj = env.Object(Glob('dev/ST/STM32F3xx/src/*.c'))
+
+Return('obj')

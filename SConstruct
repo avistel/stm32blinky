@@ -1,39 +1,42 @@
 import os
+import sys
 
+from SCons.Tool import gcc
 
-OPTIMIZATION = '-O2'
-#LDPATH = os.path.join(BASE, 'Projects/STM32F3-Discovery/Templates/TrueSTUDIO/STM32F3-Discovery/STM32F303VC_FLASH.ld')
+DefaultEnvironment(tools=[])
 
-env = Environment(ENV = os.environ, tools = ['mingw'])
+gcc.detect_version = lambda env, cc: None
 
-env['AR'] = 'arm-none-eabi-ar'
-env['AS'] = 'arm-none-eabi-as'
-env['CC'] = 'arm-none-eabi-gcc'
-env['CXX'] = 'arm-none-eabi-g++'
-env['LINK'] = 'arm-none-eabi-gcc'
-env['RANLIB'] = 'arm-none-eabi-ranlib'
-env['OBJCOPY'] = 'arm-none-eabi-objcopy'
-env['PROGSUFFIX'] = '.elf'
+env = Environment(
+		AR = 'arm-none-eabi-ar',
+		AS = 'arm-none-eabi-as',
+		CC = 'arm-none-eabi-gcc',
+		CXX = 'arm-none-eabi-g++',
+		LINK = 'arm-none-eabi-gcc',
+		RANLIB = 'arm-none-eabi-ranlib',
+		OBJCOPY = 'arm-none-eabi-objcopy',
+		PROGSUFFIX = '.elf',
+		tools = ['mingw'],
+		ENV = {'PATH' : os.environ['PATH'], 'CYGWIN' : 'nodosfilewarning'}
+)
 
 # include locations
 
-env.Append(CPPPATH=
-	[
-		os.path.join(os.getcwd(),'thirdparty', 'cmsis', 'inc'),
-		os.path.join(os.getcwd(),'thirdparty','cmsis','dev','ST','STM32F3xx','inc'),
-		os.path.join(os.getcwd(),'thirdparty' , 'hal' , 'inc'),
-		os.path.join(os.getcwd(),'thirdparty' , 'hal' , 'inc' , 'legacy')
-	])
-
+env.Append(CPPPATH = [
+	'#/' + os.path.join('thirdparty','cmsis','inc'),
+	'#/' + os.path.join('thirdparty','cmsis','dev','ST','STM32F3xx','inc'),
+	'#/' + os.path.join('thirdparty','hal','inc'),
+	'#/' + os.path.join('thirdparty','hal','inc','legacy')]
+)
 
 env.Append(CCFLAGS = [
 	'-mcpu=cortex-m4',
 	'-mthumb',
-	OPTIMIZATION,
+	'-O2',
 	'-fsigned-char',
 	'-ffunction-sections',
 	'-fdata-sections',
-	'-std=c90',
+	'-std=c99',
 	'-fmessage-length=0',
 	'-mthumb-interwork'
 	])
@@ -47,11 +50,17 @@ env.Append(CCFLAGS = [
 #     '--specs=nano.specs',
 # 	])
 env.Append(CPPDEFINES = [
-	'STM32F3xx'
+	'STM32F3xx',
+	'STM32F303xC'
 	])
 
-Export('env')
-
-print os.getcwd()
-obj = SConscript('thirdparty/cmsis/SConscript')
-obj = SConscript('thirdparty/hal/SConscript')
+#print BASE
+#print os.path.join(BASE, r'thirdparty/cmsis')
+#print Dir(BASE).path
+print '#' + os.path.join(os.getcwd(),'thirdparty','cmsis','inc')
+print env['CPPPATH']
+hal_o = SConscript('thirdparty/hal/SConscript', exports = 'env', duplicate=0)
+cmsis_o = SConscript('thirdparty/cmsis/SConscript', exports = 'env', duplicate=0)
+hal_a = env.Library(hal_o)
+cmsis_a = env.Library(cmsis_o)
+#obj = env.Object('stm32303c-eval-blinky.c')

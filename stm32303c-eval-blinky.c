@@ -16,14 +16,13 @@
 #include <stdint.h>
 #include <limits.h>
 
-#include <stm32f30x.h>
+#include <stm32f303x8.h>
 
 uint32_t led_values[] = { 0, 1, 3, 6, 12, 8, 0, 8, 12, 6, 3, 1 };
 uint32_t led_index;
 
 uint32_t delay;
 uint32_t last_tick;
-
 /* for testing the value range */
 uint32_t min_delay = UINT_MAX;
 uint32_t max_delay = 0;
